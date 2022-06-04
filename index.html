@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHAT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Roboto';
+        }
+        .chat-box {
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 24px auto;
+        }
+        .m-bar {
+            width: 100%;
+            height: 300px;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            border: 2px solid #ddd;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            /* border-bottom: none; */
+        }
+        .msg {
+            padding: 4px 6px;
+            width: fit-content;
+            display: flex;
+            flex-direction: column;
+        }
+        .msg-r {
+            align-self: flex-end;
+        }
+        .msg p {
+            background: #222831;
+            color: #fff;
+            font-size: 14px;
+            margin: 2px 0;
+            padding: 6px 16px;
+            border-radius: 26px;
+            word-break: break-all;
+        }
+        .msg-r p {
+            background: #f7f7f7;
+            color: #000;
+        }
+        .msg span {
+            font-size: 11px;
+            /* align-self: flex-end; */
+            margin: 2px 4px;
+            font-style: italic;
+        }
+        .msg-r span {
+            align-self: flex-end;
+        }
+
+        .if {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            /* margin: 8px 2px; */
+            padding: 4px 2px;
+            /* border: 1px solid #ddd; */
+            /* border-top: none; */
+            background: #EEEEEE;
+        }
+
+        #if-1 {
+            /* width: 80%; */
+            /* width: fit-content; */
+            border: 1px solid #ddd;
+            outline: none;
+            height: 30px;
+            width: 90%;
+            padding: 0 12px;
+            border-radius: 30px;
+        }
+
+        #send-btn {
+            background: #EEEEEE;
+            border: none;
+            cursor: pointer;
+            margin-left: auto;
+            margin-right: 0;
+        }
+        #send-btn img {
+            width: 18px;
+        }
+        .banner {
+            margin: 2px 0;
+            width: 100%;
+            height: 40px;
+            position: relative;
+            /* border: 2px solid #000; */
+        }
+        .c-share {
+            margin: 2px 0;
+            width: 100%;
+        }
+        #c-info, .c-share p {
+            /* margin: 8px 2px; */
+            margin: 0;
+            height: 100%;
+            background: #222831;
+            color: #fff;
+            font-size: 13px;
+            font-style: italic;
+            text-align: center;
+            line-height: 40px;
+        }
+        .c-share p {
+            line-height: 28px;
+            background: #FF2E63;
+        }
+        #c-share {
+            font-style: normal;
+        }
+        #c-close {
+            position: absolute;
+            right: 20px;
+            top: 8px;
+            width: 24px;
+            background: transparent;
+            border: none;
+            outline: none;
+            cursor: pointer;
+        }
+        #c-close img {
+            width: 24px;
+        }
+        .chat-info {
+            display: flex;
+            align-items: center;
+            margin-top: 4px;
+        }
+        .chat-info span {
+            font-size: 12px;
+            font-style: italic;
+            flex: 1;
+            text-align: center;
+        }
+        .chat-info .e {
+            height: 2px;
+            /* border: 2px solid #333; */
+            background: #777;
+        }
+        #chat-info {
+            flex: 3;
+            /* width: fit-content; */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chat-box">
+            <div class="banner">
+                <p id="c-info">{@chatname} - created by {@username}</p>
+                <button id="c-close"><img src="res/close.png" alt=""></button>
+            </div>
+            <div class="c-share">
+                <p>copy and share this link with your friends to let them join the chat.</p>
+                <p id="c-share">https://myapp.com/join?chatId</p>
+            </div>
+            <div class="m-bar">
+                <div class="msg item-1" data-mid="-1" style="display: none;">
+                    <p>Hi, how are you doing?</p>
+                    <span>12:39 PM</span>
+                </div>
+                <div class="chat-info item-1" data-mid="0" style="display: none;">
+                    <span class="e"></span>
+                    <span id="chat-info">@username has joined the chat.</span>
+                    <span class="e"></span>
+                </div>
+                <!-- <div class="msg msg-r">
+                    <p>I am good thank you.</p>
+                    <span style="display: none;">12:42 PM</span>
+                </div> -->
+            </div>
+            <div class="if">
+                <input type="text" name="if-1" id="if-1" placeholder="Message">
+                <button id="send-btn">
+                    <img src="res/send-message.png" alt="">
+                </button>
+            </div>
+        </div>
+
+        <!-- <button onclick="f()">TEST</button> -->
+    </div>
+
+    <script>
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatId = urlParams.get('chatId');
+
+        const url = document.location.href;
+        var rpc = '/index.html?';
+        if (url.indexOf('index.html') == -1) {
+            rpc = '/?'
+        }
+        document.getElementById('c-share').textContent = url.replace(rpc, '/join.html?');
+
+        const node0 = document.querySelector('.msg');
+        const inode0 = document.querySelector('.chat-info');
+        const mbar = document.querySelector('.m-bar');
+        const inp = document.getElementById('if-1');
+        const sendBtn = document.getElementById('send-btn');
+        const actionBtn = document.getElementById('c-close');
+
+        function insertMessage(body, sid, sname, mid, n, next) {
+            const node = node0.cloneNode(true);
+            node.removeAttribute('style');
+            node.children[0].textContent = body;
+            node.children[1].textContent = 'You';
+            if (n == 1) {
+                node.children[1].textContent = '@' + sname;
+                node.classList.add('msg-r');
+            }
+            node.setAttribute('data-mid', mid);
+            mbar.insertBefore(node, next);
+            return node;
+        }
+
+        function insertChatInfo(body, mid, next) {
+            const inode = inode0.cloneNode(true);
+            inode.removeAttribute('style');
+            inode.children[1].textContent = body;
+            inode.setAttribute('data-mid', mid);
+            mbar.insertBefore(inode, next);
+            return inode;
+        }
+
+        function sendMessage() {
+            const body = inp.value;
+            inp.value = '';
+
+            if (body.trim().length == 0) {
+                return;
+            }
+            q({
+                method: 'sendMessage',
+                args: {
+                    convId: chatId,
+                    body: body
+                }
+            }, res => {
+                if (res.code != 200) alert(res.msg);
+                else console.log(res.msg);
+            });
+        }
+
+        inp.addEventListener('keypress', evt => {
+            if (evt.code == 'Enter') {
+                sendMessage();
+            }
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+    </script>
+
+    <script>
+        function q(payload, callback, errCallback = console.log) {
+            const formData = new FormData();
+            formData.append("q", JSON.stringify(payload));
+            fetch('app.php', {
+                method: "POST",
+                mode: "cors",
+                credentials: "include",
+                headers: {
+                    'Accept': 'application/json',
+                    // 'Content-Type': 'application/json'
+                },
+                body: formData
+            }).then(res => res.json())
+            .then(res => {
+                callback(res);
+            }).catch(err => {
+                errCallback(err);
+            });
+        }
+
+        q({
+            method: 'getChatInfo',
+            args: {
+                chatId: chatId
+            }
+        }, res => {
+            const p = document.querySelector('#c-info');
+            if (res.code == 200) {
+                p.textContent = '#' + res.chat.name + ' - created by @' + res.chat.created_by;
+                actionBtn.children[0].src = 'res/close.png';
+                actionBtn.onclick = function () {
+                    if (confirm('are you sure you want to exit?')) {
+                        q({
+                            method: 'quitChat',
+                            args: {
+                                chatId: chatId
+                            }
+                        }, res => {
+                            window.location.reload();
+                        });
+                    }
+                }
+            } else {
+                p.textContent = 'click the icon to create new chat.';
+                p.style.backgroundColor = '#7900FF';
+                inp.disabled = true;
+                document.querySelector('.c-share').style.display = 'none';
+                // actionBtn.style.display = 'none';
+                actionBtn.children[0].src = 'res/multiple-users-silhouette.png';
+                actionBtn.onclick = function () {
+                    document.location.replace('join.html?chatId=0');
+                }
+            }
+        });
+
+        var offset = -1, count = -1, LIMIT = 16;
+
+        q({
+            method: 'getConvMessagesCount',
+            args: {
+                convId: chatId
+            }
+        }, res => {
+            if (res.code == 200) {
+                count = res.count;
+                update(0);
+            }
+        });
+        // q({
+        //     method: 'getConvMessages',
+        //     args: {
+        //         convId: 1337,
+        //         offset: 1,
+        //         limit: 6
+        //     }
+        // }, res => {console.log(res)});
+        // for (var i=0; i<32; i++) {
+        //     q({
+        //         method: 'sendMessage',
+        //         args: {
+        //             convId: 1337,
+        //             body: 'JS:TEST:' + i
+        //         }
+        //     }, res => {console.log(res)});
+        // }
+
+        function update(_n) {
+            q({
+                method: 'getConvMessages',
+                args: {
+                    convId: chatId,
+                    offset: offset,
+                    limit: LIMIT
+                }
+            }, res => {
+                uid = res.uid;
+                if (typeof res.messages === "undefined") return;
+                if (res.messages.length == 0) return;
+                // console.log(res);
+                // const scrollHeight0 = mbar.scrollHeight;
+                prevDy = mbar.scrollHeight;
+                var next = document.querySelector('.item-1:nth-child(3)');
+                var _mid = 0xffffffff;
+                if (next != null) {
+                    _mid = next.getAttribute('data-mid');
+                }
+                for (var i=0; i < res.messages.length; i++) {
+                    const msg = res.messages[i];
+                    if (msg.mid >= _mid) {
+                        continue;
+                    }
+                    var n = 1;
+                    if (uid == msg.sid) {
+                        n = 0;
+                    }
+                    if (msg.sid == 0) {
+                        next = insertChatInfo(msg.body, msg.mid, next);
+                    } else {
+                        next = insertMessage(msg.body, msg.sid, msg.sname, msg.mid, n, next);
+                    }
+                }
+                offset = res.messages[res.messages.length-1].mid-1;
+
+                if (_n == 0) {
+                    mbar.scrollTop = mbar.scrollHeight;
+                }
+            });
+        }
+
+
+        function f() {
+            if (offset < 0) {
+                // alert('No more messages');
+                return;
+            }
+            update();
+        }
+        mbar.addEventListener('scroll', evt => {
+            if (evt.target.scrollTop < mbar.scrollHeight/2) {
+                f();
+            }
+        })
+
+        const id = setInterval(() => {
+            count = parseInt(count);
+            if (count < 0) return;
+            q({
+                method: 'getConvMessagesCount',
+                args: {
+                    convId: chatId
+                }
+            }, res => {
+                if (res.code != 200) return;
+                if (res.count > count) {
+                    // console.log('new messages received');
+                    console.log([count, res.count]);
+                    q({
+                        method: 'getConvMessages',
+                        args: {
+                            convId: chatId,
+                            offset: -1,
+                            limit: 0xffff
+                        }
+                    }, res => {
+                        if (res.code != 200) return;
+                        uid = res.uid;
+                        console.log(res.messages);
+                        var next = document.querySelector('.item-1:last-child');
+                        var _mid = 0, ie = 0;
+                        if (next != null) {
+                            _mid = next.getAttribute('data-mid');
+                        }
+                        for (var i=res.messages.length-1; i > -1; i--) {
+                            const msg = res.messages[i];
+                            if (_mid >= msg.mid) {
+                                continue;
+                            }
+                            var n = 1;
+                            if (msg.sid == uid) n = 0;
+                            if (msg.sid == 0) {
+                                insertChatInfo(msg.body, msg.mid, null);
+                            } else {
+                                insertMessage(msg.body, msg.sid, msg.sname, msg.mid, n, null);
+                            }
+                            ie++;
+                        }
+                        console.log(ie);
+                        count += ie;
+                        mbar.scrollTop = mbar.scrollHeight;
+                    });
+                }
+            });
+        }, 300);
+    </script>
+</body>
+</html>

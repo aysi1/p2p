@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOIN A CHAT ROOM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Roboto';
+        }
+        .box-0 {
+            max-width: 400px;
+            border: 2px solid #ddd;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #EEEEEE;
+            margin: 47px auto;
+        }
+        .join-chat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* justify-content: center; */
+        }
+        button {
+            height: 42px;
+            padding: 4px 48px;
+            font-size: 22px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            background: #3EC1D3;
+            color: #fff;
+            margin: 8px 2px;
+            transition: .3s;
+            /* font-style: italic; */
+            /* border-radius: 8px; */
+            /* box-shadow: 0 0 4px #3EC1D3; */
+        }
+        .errno {
+            background: #FF1700;
+            color: #fff;
+            padding: 4px 24px;
+            height: 32px;
+            line-height: 24px;
+        }
+        #join-chat-btn:hover {
+            box-shadow: 0 0 4px #3EC1D3;
+        }
+        .join-chat-box p span {
+            font-style: italic;
+        }
+        .create-chat-room-box {
+            width: 100%;
+            margin-top: 20px;
+            padding: 8px 0;
+            border-top: 2px solid #393E46;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #create-chat-btn {
+            background: #0E49B5;
+        }
+        #create-chat-btn:hover {
+            box-shadow: 0 0 4px #0E49B5;
+        }
+        input {
+            height: 37px;
+            outline: none;
+            text-align: center;
+            font-size: 18px;
+            margin: 4px 0;
+            border: 1px solid #ddd;
+            transition: .3s;
+        }
+        input:focus {
+            box-shadow: 0 0 3px #3EC1D3;
+            border-color: #3EC1D3;
+        }
+        .create-chat-room-box p {margin: 8px 0;}
+        .create-chat-room-box p span {font-style: italic;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box-0">
+            <div class="join-chat-box">
+                <p><span>{#chatname}</span> created by <span>{@username}</span> / <span>(0 members)</span></p>
+                <input type="text" placeholder="@yourname" id="uname-0">
+                <button id="join-chat-btn">JOIN</button>
+                <div class="errno" style="display: none;">
+                    ERROR[ CHAT NOT FOUND ]
+                </div>
+            </div>
+            <div class="create-chat-room-box">
+                <p><span>create your own chat room!</span></p>
+                <input type="text" placeholder="@yourname" id="uname">
+                <input type="text" placeholder="#chatname" id="cname">
+                <button id="create-chat-btn">CREATE ROOM</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function q(payload, callback, errCallback = console.log) {
+            const formData = new FormData();
+            formData.append("q", JSON.stringify(payload));
+            fetch('join.php', {
+                method: "POST",
+                mode: "cors",
+                credentials: "include",
+                headers: {
+                    'Accept': 'application/json',
+                    // 'Content-Type': 'application/json'
+                },
+                body: formData
+            }).then(res => res.json())
+            .then(res => {
+                callback(res);
+            }).catch(err => {
+                errCallback(err);
+            });
+        }
+    </script>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatId = urlParams.get('chatId');
+        const joinBtn = document.getElementById('join-chat-btn');
+        const createChatBtn = document.getElementById('create-chat-btn');
+
+        q({
+            method: 'getChatInfo',
+            args: {
+                chatId: chatId
+            }
+        }, res => {
+            console.log(res);
+            const p = document.querySelector('.join-chat-box p');
+            if (res.code == 200) {
+                p.children[0].textContent = '#' + res.chat.name;
+                p.children[1].textContent = '@' + res.chat.created_by;
+                p.children[2].textContent = '( ' + res.chat.nb_members + ' member' + ((res.chat.nb_members == 1) ? ' )':'s )');
+            } else if (chatId > 0) {
+                p.style.display = 'none';
+                joinBtn.style.display = 'none';
+                document.querySelector('.join-chat-box .errno').style.display = '';
+                document.getElementById('uname-0').style.display = 'none';
+            } else {
+                joinBtn.style.display = 'none';
+                p.style.display = 'none';
+                document.getElementById('uname-0').style.display = 'none';
+            }
+        });
+
+        joinBtn.addEventListener('click', () => {
+            const uname = document.getElementById('uname-0').value.trim();
+            if (uname.length == 0 || name.length > 16) {
+                alert('Invalid name');
+                return;
+            }
+            q({
+                method: 'joinChat',
+                args: {
+                    chatId: chatId,
+                    name: uname
+                }
+            }, res => {
+                if (res.code != 200) {
+                    alert(res.msg);
+                    return;
+                }
+                document.location.replace('index.html?chatId='+res.chatId);
+            });
+        });
+
+        createChatBtn.addEventListener('click', () => {
+            const uname = document.getElementById('uname').value.trim();
+            const cname = document.getElementById('cname').value.trim();
+            if (uname.length == 0 || cname.length == 0 || uname.length > 16 || cname.length > 16) {
+                alert('Invalid username or chatname');
+                return;
+            }
+            q({
+                method: 'createChat',
+                args: {
+                    name: uname,
+                    cname: cname
+                }
+            }, res => {
+                if (res.code != 200) {
+                    alert(res.msg);
+                    return;
+                }
+                document.location.replace('index.html?chatId='+res.chatId);
+                // console.log(res);
+            });
+        });
+    </script>
+</body>
+</html>

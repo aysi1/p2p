@@ -1,0 +1,31 @@
+create table member(
+    id int not null,
+    name varchar(64) not null,
+    primary key(id)
+)
+
+
+create table conv(
+    cid int not null,
+    uid int not null
+)
+
+
+create table conversation(
+    cid int not null,
+    ts timestamp default current_timestamp,
+    name varchar(64) not null,
+    created_by varchar(64) not null,
+    nb_members int not null default 1,
+    primary key(cid)
+)
+
+create table message(
+    mid int not null auto_increment,
+    sid int not null,
+    cid int not null,
+    body varchar(16000),
+    ts timestamp default current_timestamp,
+    sname varchar(64),
+    primary key(mid)
+)
